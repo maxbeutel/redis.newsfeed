@@ -94,6 +94,9 @@ class IterableRedisResult implements Iterator
     private $index = 0;
     private $array = array();
 
+    private $groupedItems = array();
+    private $inGroup = false;
+
     public function __construct(Closure $callback, $maxResults, $lastDate)
     {
         $this->callback = $callback;
@@ -114,9 +117,15 @@ class IterableRedisResult implements Iterator
 
         if ($next && $next['type'] === 'PHOTO') { // @FIXME doesnt take owner into account
             $current['__group'][] = $next; // group next entries as children
+
             unset($this->array[$nextIndex]);
             $this->next();
+
+            $this->inGroup = true;
+
             $this->groupNextEntries($nextIndex, $current);
+        } else {
+            $this->inGroup = false;
         }
     }
 
@@ -127,6 +136,8 @@ class IterableRedisResult implements Iterator
         if ($current['type'] === 'PHOTO') {
             $this->groupNextEntries($this->index, $current);
         }
+
+        $this->groupedItems[] = $current;
         
         return $current;
     }
@@ -143,7 +154,24 @@ class IterableRedisResult implements Iterator
 
     public function valid()
     {
-        return $this->index !== $this->maxResults;
+        if (!isset($this->array[$this->index])) {
+            if (/*$this->inGroup || */count($this->groupedItems) < $this->maxResults) {
+                $last = $this->getLast();
+                $lastDate = $last['date'];
+
+                $callback = $this->callback;
+
+                $someMore =  $callback($this->maxResults, $lastDate);
+
+                foreach ($someMore as $item) {
+                    $this->array[] = $item;
+                }
+
+                return count($someMore) > 0;
+            }
+        }
+
+        return $this->index <= $this->maxResults + 1;
     }
 
     public function getLast()
