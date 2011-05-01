@@ -133,9 +133,11 @@ class IterableRedisResult implements Iterator
     {
         $current = $this->array[$this->index];
 
+        /*
         if ($current['type'] === 'PHOTO') {
             $this->groupNextEntries($this->index, $current);
         }
+         */
 
         $this->groupedItems[] = $current;
         
@@ -154,8 +156,10 @@ class IterableRedisResult implements Iterator
 
     public function valid()
     {
+        return isset($this->array[$this->index]);
+        /*
         if (!isset($this->array[$this->index])) {
-            if (/*$this->inGroup || */count($this->groupedItems) < $this->maxResults) {
+            if ($this->inGroup || count($this->groupedItems) < $this->maxResults) {
                 $last = $this->getLast();
                 $lastDate = $last['date'];
 
@@ -172,6 +176,8 @@ class IterableRedisResult implements Iterator
         }
 
         return $this->index <= $this->maxResults + 1;
+
+         */
     }
 
     public function getLast()
