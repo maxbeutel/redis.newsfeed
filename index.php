@@ -133,11 +133,9 @@ class IterableRedisResult implements Iterator
     {
         $current = $this->array[$this->index];
 
-        /*
         if ($current['type'] === 'PHOTO') {
             $this->groupNextEntries($this->index, $current);
         }
-         */
 
         $this->groupedItems[] = $current;
         
