@@ -65,7 +65,7 @@ function getEntriesForOwner(Predis\Client $redis, $owner, $maxResults, $lastEntr
             'member.' . $owner['id'] . '.entries',
             $redis->zrevrangebyscore(
                 'member.' . $owner['id'] . '.walls.ownerWall',
-                ($lastDate ?: '+inf'),
+                ($lastDate ? '(' . $lastDate : '+inf'),
                 '-inf', 'LIMIT',
                 '0',
                 $maxResults
